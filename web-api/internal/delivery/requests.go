@@ -40,6 +40,7 @@ func (h *Handler) Requests(w http.ResponseWriter, r *http.Request) {
 			ID:            tr.ID.(string),
 			Host:          tr.Request.Host,
 			Method:        tr.Request.Method,
+			Headers:	   tr.Request.Headers,
 			Path:          tr.Request.Path,
 			StatusCode:    tr.Response.StatusCode,
 			ContentLenght: tr.Response.ContentLenght,
@@ -66,14 +67,22 @@ func (h *Handler) RequestByID(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error to get transaction by id"))
+		return
 	}
 
-	response, err := json.Marshal(transaction)
+	resRepeat,err:=RepeatRequest(transaction)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Error repeating request"))
+		return
+	}
+
+	err = resRepeat.Write(w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write(response)
 
 }
 
